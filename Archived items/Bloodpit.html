@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilneval's Warriors - Blood Pit Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --blood-red: #8B0000;
+            --dark-stone: #1a1a1a;
+            --bronze: #CD7F32;
+            --gold: #FFD700;
+            --parchment: #F4E4C1;
+            --shadow: rgba(0, 0, 0, 0.8);
+        }
+
+        body {
+            font-family: 'Cinzel', serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a0000 100%);
+            color: var(--parchment);
+            min-height: 100vh;
+            padding: 2rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(205, 127, 50, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(180deg, rgba(139, 0, 0, 0.3) 0%, transparent 100%);
+            border-bottom: 3px solid var(--bronze);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 4rem;
+            font-weight: 900;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            background: linear-gradient(180deg, var(--gold) 0%, var(--bronze) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+        }
+
+        .manager-info {
+            font-size: 1.2rem;
+            color: var(--bronze);
+            margin-top: 1rem;
+            letter-spacing: 0.1rem;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(205, 127, 50, 0.1) 0%, rgba(139, 0, 0, 0.1) 100%);
+            border: 2px solid var(--bronze);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 8px 16px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px var(--shadow);
+            border-color: var(--gold);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: var(--bronze);
+        }
+
+        .team-section {
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(26, 0, 0, 0.8) 100%);
+            border: 2px solid var(--bronze);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px var(--shadow);
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .team-header {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--bronze);
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.15rem;
+        }
+
+        .team-record {
+            font-size: 1rem;
+            color: var(--bronze);
+            margin-left: 1rem;
+            font-weight: 400;
+        }
+
+        .warriors-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .warrior-card {
+            background: linear-gradient(90deg, rgba(139, 0, 0, 0.2) 0%, rgba(205, 127, 50, 0.1) 100%);
+            border-left: 4px solid var(--bronze);
+            padding: 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .warrior-card:hover {
+            transform: translateX(10px);
+            background: linear-gradient(90deg, rgba(139, 0, 0, 0.3) 0%, rgba(205, 127, 50, 0.2) 100%);
+            border-left-color: var(--gold);
+            box-shadow: -5px 0 15px var(--shadow);
+        }
+
+        .warrior-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .warrior-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--gold);
+            letter-spacing: 0.05rem;
+        }
+
+        .warrior-details {
+            display: flex;
+            gap: 2rem;
+            color: var(--bronze);
+            font-size: 0.9rem;
+        }
+
+        .warrior-record {
+            font-weight: 600;
+        }
+
+        .fights-list {
+            margin-top: 1rem;
+        }
+
+        .fight-entry {
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .fight-entry.win {
+            border-left: 3px solid #00ff00;
+        }
+
+        .fight-entry.loss {
+            border-left: 3px solid #ff0000;
+        }
+
+        .fight-result {
+            font-weight: 600;
+            padding: 0.3rem 0.8rem;
+            border-radius: 5px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05rem;
+        }
+
+        .fight-result.win {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .fight-result.loss {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+
+        .opponent-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .opponent-name {
+            font-weight: 600;
+            color: var(--parchment);
+        }
+
+        .opponent-details {
+            font-size: 0.85rem;
+            color: var(--bronze);
+            margin-top: 0.3rem;
+        }
+
+        .opponent-team {
+            font-size: 0.85rem;
+            color: var(--bronze);
+            font-style: italic;
+        }
+
+        .opponent-manager {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .fight-time {
+            color: var(--bronze);
+            font-size: 0.85rem;
+        }
+
+        .no-fights {
+            text-align: center;
+            padding: 2rem;
+            color: var(--bronze);
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding: 2rem;
+            border-top: 2px solid var(--bronze);
+            color: var(--bronze);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+
+            .team-header {
+                font-size: 1.5rem;
+            }
+
+            .warrior-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .fight-entry {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ilneval's Warband</h1>
+            <div class="manager-info">Manager ID: 93 | Turn 1342</div>
+        </header>
+
+        <div class="stats-summary">
+            <div class="stat-card">
+                <div class="stat-value">15-10</div>
+                <div class="stat-label">Manager Record</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Active Teams</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Kills This Turn</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">60%</div>
+                <div class="stat-label">Win Rate</div>
+            </div>
+        </div>
+
+        <!-- RIEKLAND REAVERS -->
+        <div class="team-section">
+            <h2 class="team-header">
+                Riekland Reavers
+                <span class="team-record">(3056-2487-107)</span>
+            </h2>
+            <div class="warriors-grid">
+                <!-- DARK TRANQUILITY -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">DARK TRANQUILITY</div>
+                        <div class="warrior-details">
+                            <span>Dwarf | Male</span>
+                            <span class="warrior-record">34-22-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">BLASTER (1846) 32-32-1</div>
+                                <div class="opponent-details">Human Male</div>
+                                <div class="opponent-team">AUTOBOTS: 2005</div>
+                                <div class="opponent-manager">Manager: PRIMUS (838)</div>
+                            </div>
+                            <div class="fight-time">3 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WRITHEN HILT -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">WRITHEN HILT</div>
+                        <div class="warrior-details">
+                            <span>Dwarf | Male</span>
+                            <span class="warrior-record">29-27-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">SHOE FLY (863) 27-29-1</div>
+                                <div class="opponent-details">Human Male</div>
+                                <div class="opponent-team">URBAN JUNGLE</div>
+                                <div class="opponent-manager">Manager: STIMPY (355)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STERRENHEMEL -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">STERRENHEMEL</div>
+                        <div class="warrior-details">
+                            <span>Dwarf | Male</span>
+                            <span class="warrior-record">5-6-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+
+                <!-- JUST AVERAGE -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">JUST AVERAGE</div>
+                        <div class="warrior-details">
+                            <span>Human | Male</span>
+                            <span class="warrior-record">107-95-2</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory ⚔️ KILL!</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">OSRIC (1967) 92-91-2</div>
+                                <div class="opponent-details">Human Male</div>
+                                <div class="opponent-team">HERO QUEST</div>
+                                <div class="opponent-manager">Manager: MASTER OF WAR (892)</div>
+                            </div>
+                            <div class="fight-time">3 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ORIKROL BONEPIKE -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">ORIKROL BONEPIKE</div>
+                        <div class="warrior-details">
+                            <span>Dwarf | Male</span>
+                            <span class="warrior-record">41-17-2</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">CUPLIX (1908) 30-40-0</div>
+                                <div class="opponent-details">Dwarf Male</div>
+                                <div class="opponent-team">OH WELL</div>
+                                <div class="opponent-manager">Manager: HATRED (873)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORCLAND RAIDERS -->
+        <div class="team-section">
+            <h2 class="team-header">
+                Orcland Raiders
+                <span class="team-record">(3050-2476-154)</span>
+            </h2>
+            <div class="warriors-grid">
+                <!-- KRUUSK -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">KRUUSK</div>
+                        <div class="warrior-details">
+                            <span>Half-Orc | Male</span>
+                            <span class="warrior-record">7-6-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+
+                <!-- HARAGAR KILURK -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">HARAGAR KILURK</div>
+                        <div class="warrior-details">
+                            <span>Half-Orc | Male</span>
+                            <span class="warrior-record">59-40-5</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry loss">
+                            <div class="fight-result loss">Defeat</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">KRH COPO (398) 64-57-1</div>
+                                <div class="opponent-details">Human Male</div>
+                                <div class="opponent-team">CAPTAIN UNDERPANTS</div>
+                                <div class="opponent-manager">Manager: SANGUINE SAVIOR (140)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USHARA URGOK -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">USHARA URGOK</div>
+                        <div class="warrior-details">
+                            <span>Half-Orc | Male</span>
+                            <span class="warrior-record">15-5-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">TIGER TY (2347) 11-20-2</div>
+                                <div class="opponent-details">Elf Male</div>
+                                <div class="opponent-team">INSANE IN THE BRAIN</div>
+                                <div class="opponent-manager">Manager: MADNESS (1079)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRAXIL MOURNCALLER -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">GRAXIL MOURNCALLER</div>
+                        <div class="warrior-details">
+                            <span>Half-Orc | Male</span>
+                            <span class="warrior-record">19-15-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry loss">
+                            <div class="fight-result loss">Defeat</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">ANNELLI STARBOURNE (2085) 25-9-1</div>
+                                <div class="opponent-details">Human Female</div>
+                                <div class="opponent-team">STRAYLIGHT BEACH</div>
+                                <div class="opponent-manager">Manager: LELU DALLAS (946)</div>
+                            </div>
+                            <div class="fight-time">4 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KARRUK VARKOTH -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">KARRUK VARKOTH</div>
+                        <div class="warrior-details">
+                            <span>Half-Orc | Male</span>
+                            <span class="warrior-record">8-13-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry loss">
+                            <div class="fight-result loss">Defeat</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">BLOOMINGTON (598) 3-33-0</div>
+                                <div class="opponent-details">Halfling Female</div>
+                                <div class="opponent-team">THE COALITION</div>
+                                <div class="opponent-manager">Manager: MONGOLIAN KNIGHT (253)</div>
+                            </div>
+                            <div class="fight-time">3 min</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- VESTIAN RENEGADES -->
+        <div class="team-section">
+            <h2 class="team-header">
+                Vestian Renegades
+                <span class="team-record">(2968-2581-130)</span>
+            </h2>
+            <div class="warriors-grid">
+                <!-- AUTHLAN BRONDAWN -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">AUTHLAN BRONDAWN</div>
+                        <div class="warrior-details">
+                            <span>Elf | Male</span>
+                            <span class="warrior-record">7-7-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+
+                <!-- KROMGRUN THRUBRIK -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">KROMGRUN THRUBRIK</div>
+                        <div class="warrior-details">
+                            <span>Dwarf | Male</span>
+                            <span class="warrior-record">48-38-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry loss">
+                            <div class="fight-result loss">Defeat</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">LAMMY (838) 54-42-1</div>
+                                <div class="opponent-details">Elf Male</div>
+                                <div class="opponent-team">BAD MUTTERS</div>
+                                <div class="opponent-manager">Manager: FUSION (346)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NARCISSUS -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">NARCISSUS</div>
+                        <div class="warrior-details">
+                            <span>Half-Orc | Male</span>
+                            <span class="warrior-record">29-22-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry loss">
+                            <div class="fight-result loss">Defeat</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">MEKGINEER THERMAPLUG (1944) 29-35-1</div>
+                                <div class="opponent-details">Halfling Male</div>
+                                <div class="opponent-team">THE WILDHAMMER CLAN</div>
+                                <div class="opponent-manager">Manager: THE SICKNESS (887)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WICK MORGUL -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">WICK MORGUL</div>
+                        <div class="warrior-details">
+                            <span>Halfling | Male</span>
+                            <span class="warrior-record">21-20-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">EILA GARNETSTONE (2271) 23-11-0</div>
+                                <div class="opponent-details">Half-Elf Female</div>
+                                <div class="opponent-team">ABSOLUTION</div>
+                                <div class="opponent-manager">Manager: NALKOR IRONSIDE (1039)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ASTRAN LYRDEN -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">ASTRAN LYRDEN</div>
+                        <div class="warrior-details">
+                            <span>Half-Elf | Male</span>
+                            <span class="warrior-record">7-11-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LAST COMMAND -->
+        <div class="team-section">
+            <h2 class="team-header">
+                Last Command
+                <span class="team-record">(3027-2393-123)</span>
+            </h2>
+            <div class="warriors-grid">
+                <!-- MENTALLY YOURS -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">MENTALLY YOURS</div>
+                        <div class="warrior-details">
+                            <span>Human | Female</span>
+                            <span class="warrior-record">30-21-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">CHUPACABRA (806) 23-25-1</div>
+                                <div class="opponent-details">Halfling Male</div>
+                                <div class="opponent-team">THRILLING ADVENTURE</div>
+                                <div class="opponent-manager">Manager: POPPA BALROG (339)</div>
+                            </div>
+                            <div class="fight-time">3 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAELIN MIRTHHIDE -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">MAELIN MIRTHHIDE</div>
+                        <div class="warrior-details">
+                            <span>Elf | Male</span>
+                            <span class="warrior-record">3-4-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+
+                <!-- MAYJUR BLUDD -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">MAYJUR BLUDD</div>
+                        <div class="warrior-details">
+                            <span>Human | Male</span>
+                            <span class="warrior-record">8-7-2</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+
+                <!-- IRAKUL GITHAM -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">IRAKUL GITHAM</div>
+                        <div class="warrior-details">
+                            <span>Elf | Male</span>
+                            <span class="warrior-record">13-10-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory ⚔️ KILL!</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">KAAR TISSUELICKER (2267) 10-18-2</div>
+                                <div class="opponent-details">Half-Orc Male</div>
+                                <div class="opponent-team">CARCASS CARVERS</div>
+                                <div class="opponent-manager">Manager: FLAYED CARCASSES (1020)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MALRIK SALVOR -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">MALRIK SALVOR</div>
+                        <div class="warrior-details">
+                            <span>Human | Male</span>
+                            <span class="warrior-record">0-1-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SILENT RAGE -->
+        <div class="team-section">
+            <h2 class="team-header">
+                Silent Rage
+                <span class="team-record">(3029-2339-130)</span>
+            </h2>
+            <div class="warriors-grid">
+                <!-- HERMYAR DUTHRETH -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">HERMYAR DUTHRETH</div>
+                        <div class="warrior-details">
+                            <span>Elf | Male</span>
+                            <span class="warrior-record">38-22-2</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">THE BOOGYMAN (2327) 36-31-0</div>
+                                <div class="opponent-details">Half-Orc Male</div>
+                                <div class="opponent-team">FROM THE KING</div>
+                                <div class="opponent-manager">Manager: THE EXECUTIONER (1056)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PANTOMMIND -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">PANTOMMIND</div>
+                        <div class="warrior-details">
+                            <span>Half-Orc | Male</span>
+                            <span class="warrior-record">24-22-2</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry loss">
+                            <div class="fight-result loss">Defeat</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">KAGA (2251) 23-33-0</div>
+                                <div class="opponent-details">Human Female</div>
+                                <div class="opponent-team">THE BLESSED</div>
+                                <div class="opponent-manager">Manager: BENNY THE BLADE (1031)</div>
+                            </div>
+                            <div class="fight-time">4 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DORARIN BLACKPIKE -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">DORARIN BLACKPIKE</div>
+                        <div class="warrior-details">
+                            <span>Human | Male</span>
+                            <span class="warrior-record">11-6-0</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry win">
+                            <div class="fight-result win">Victory</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">RAMPANT HORNICUS (1963) 8-9-1</div>
+                                <div class="opponent-details">Half-Orc Male</div>
+                                <div class="opponent-team">SPAWNS OF HELL</div>
+                                <div class="opponent-manager">Manager: ARRIAN (896)</div>
+                            </div>
+                            <div class="fight-time">2 min</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- XYRUS LORIK -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">XYRUS LORIK</div>
+                        <div class="warrior-details">
+                            <span>Half-Elf | Male</span>
+                            <span class="warrior-record">9-4-1</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="no-fights">No fights this turn</div>
+                    </div>
+                </div>
+
+                <!-- AMMORIAN VALON -->
+                <div class="warrior-card">
+                    <div class="warrior-header">
+                        <div class="warrior-name">AMMORIAN VALON</div>
+                        <div class="warrior-details">
+                            <span>Elf | Male</span>
+                            <span class="warrior-record">17-8-2</span>
+                        </div>
+                    </div>
+                    <div class="fights-list">
+                        <div class="fight-entry loss">
+                            <div class="fight-result loss">Defeat</div>
+                            <div class="opponent-info">
+                                <div class="opponent-name">IT (1882) 15-8-0</div>
+                                <div class="opponent-details">Elf Male</div>
+                                <div class="opponent-team">MY HOODED HORDES</div>
+                                <div class="opponent-manager">Manager: THE UNSPEAKABLE ONE (852)</div>
+                            </div>
+                            <div class="fight-time">3 min</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>⚔️ Blood Pit Arena - Turn 1342 ⚔️</p>
+            <p>Glory to the Warriors of Ilneval!</p>
+        </footer>
+    </div>
+</body>
+</html>

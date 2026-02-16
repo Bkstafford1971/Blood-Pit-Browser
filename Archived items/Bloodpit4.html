@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilneval's Warriors - Blood Pit Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --blood-red: #8B0000; --dark-stone: #1a1a1a; --bronze: #CD7F32; --gold: #FFD700; --parchment: #F4E4C1; }
+        body { font-family: 'Cinzel Decorative', serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a0000 100%); color: var(--parchment); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2rem; padding: 1.5rem; border-bottom: 3px solid var(--bronze); }
+        h1 { font-family: 'Cinzel Decorative', serif; font-size: 3.5rem; background: linear-gradient(180deg, var(--gold) 0%, var(--bronze) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .automation-box { background: rgba(0,0,0,0.8); border: 2px solid var(--gold); padding: 20px; border-radius: 8px; margin-bottom: 2rem; text-align: center; }
+        .url-input { width: 70%; padding: 12px; background: #111; border: 1px solid var(--bronze); color: var(--gold); margin-bottom: 10px; border-radius: 4px; }
+        
+        .input-box { background: rgba(0,0,0,0.7); border: 1px solid var(--bronze); padding: 15px; border-radius: 8px; margin-bottom: 2rem; text-align: center; }
+        textarea { width: 100%; height: 80px; background: #000; color: #00ff00; border: 1px solid #444; padding: 10px; font-family: monospace; font-size: 0.8rem; }
+        
+        button { background: var(--blood-red); color: white; border: 1px solid var(--gold); padding: 12px 25px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; text-transform: uppercase; }
+        button:hover { background: var(--bronze); color: black; }
+
+        .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .stat-card { background: rgba(205, 127, 50, 0.1); border: 2px solid var(--bronze); padding: 1.5rem; text-align: center; border-radius: 10px; }
+        .stat-value { font-size: 2.5rem; color: var(--gold); }
+        .team-section { margin-bottom: 3rem; background: rgba(26, 26, 26, 0.8); border: 2px solid var(--bronze); border-radius: 15px; padding: 2rem; }
+        .team-header { font-family: 'Cinzel Decorative', serif; font-size: 2rem; border-bottom: 2px solid var(--bronze); color: var(--gold); padding-bottom: 10px; margin-bottom: 1.5rem; }
+        
+        .warrior-card { background: rgba(139, 0, 0, 0.1); border-left: 6px solid var(--bronze); padding: 1.2rem; border-radius: 8px; margin-bottom: 1rem; }
+        
+        /* Adjusted Fight Entry to allow for the result box fix */
+        .fight-entry { 
+            padding: 1rem; 
+            background: rgba(0, 0, 0, 0.4); 
+            border-radius: 5px; 
+            margin-top: 1rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; /* Vertical centering */
+            border: 1px solid rgba(205, 127, 50, 0.2); 
+        }
+        
+        /* Fixed Result Box Size */
+        .res-win, .res-loss, .res-kill, .res-slain { 
+            display: inline-block;
+            padding: 6px 14px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            text-align: center;
+            min-width: 80px;
+            height: fit-content;
+        }
+        .res-win { background-color: #008000; color: white; }
+        .res-loss { background-color: #FF0000; color: white; }
+        .res-kill { background-color: #0000FF; color: white; }
+        .res-slain { background-color: #000000; color: white; border: 1px solid #444; }
+
+        .card-win { border-left-color: #008000; }
+        .card-loss { border-left-color: #FF0000; }
+        .card-kill { border-left-color: #0000FF; }
+        .card-slain { border-left-color: #000000; }
+
+        /* Opponent Information Stacking */
+        .opp-block { text-align: right; line-height: 1.4; }
+        .opp-name { font-weight: bold; color: var(--gold); font-size: 1.1rem; }
+        .opp-record { color: #fff; font-size: 0.95rem; }
+        .opp-team { color: var(--parchment); font-size: 0.85rem; font-variant: small-caps; }
+        .opp-mgr { color: var(--bronze); font-size: 0.8rem; font-style: italic; }
+
+        .rec-label { font-size: 0.9rem; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ilneval's Dashboard</h1>
+            <div id="turn-display"></div>
+        </header>
+
+        <div class="automation-box">
+            <input type="text" id="rosterUrl" class="url-input" placeholder="Paste Roster URL..." value="https://bloodpit.net/reports/roster.php">
+            <br>
+            <button onclick="fetchRoster()">Fetch Roster</button>
+        </div>
+
+        <div class="automation-box">
+            <input type="text" id="newsletterUrl" class="url-input" placeholder="Paste Public Newsletter URL..." value="https://bloodpit.net/reports/news.php">
+            <br>
+            <button onclick="fetchNewsletter()">Fetch & Update</button>
+            <p id="statusMsg" style="font-size: 0.8rem; margin-top: 10px; color: #888;"></p>
+        </div>
+
+        <div class="input-box">
+            <details>
+                <summary style="cursor: pointer; color: var(--bronze);">Manual Paste Fallback for Newsletter</summary>
+                <textarea id="rawNewsletter" style="margin-top:10px;"></textarea>
+                <button onclick="processData(document.getElementById('rawNewsletter').value)">Process Manual Text</button>
+            </details>
+        </div>
+
+        <div id="stats-summary" class="stats-summary"></div>
+        <div id="teams-container"></div>
+    </div>
+
+<script>
+let roster = [];
+let turnInfo = { number: 0, managerID: 93, record: "?-?", activeTeams: 0, kills: 0, winRate: "?%" };
+
+async function fetchRoster() {
+    const url = document.getElementById('rosterUrl').value || "https://bloodpit.net/reports/roster.php";
+    const status = document.getElementById('statusMsg');
+    status.innerText = "Fetching Roster...";
+    
+    // Try multiple proxy services
+    const proxyServices = [
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://cors-anywhere.herokuapp.com/${url}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+        `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`
+    ];
+    
+    for (let i = 0; i < proxyServices.length; i++) {
+        try {
+            status.innerText = `Trying proxy ${i + 1} of ${proxyServices.length}...`;
+            console.log(`Testing proxy: ${proxyServices[i]}`);
+            
+            const response = await fetch(proxyServices[i], {
+                signal: AbortSignal.timeout(10000) // 10 second timeout
+            });
+            
+            if (!response.ok) {
+                console.log(`Proxy ${i + 1} failed with status: ${response.status}`);
+                continue; // Try next proxy
+            }
+            
+            // Handle different proxy response formats
+            let text;
+            if (proxyServices[i].includes('api.allorigins.win')) {
+                const data = await response.json();
+                text = data.contents;
+            } else {
+                text = await response.text();
+            }
+            
+            if (text && text.length > 100) { // Ensure we got actual content
+                status.innerText = "Roster Fetched!";
+                console.log(`Success with proxy ${i + 1}`);
+                parseRoster(text);
+                renderArena({}, {});
+                return; // Success, exit function
+            }
+            
+        } catch (err) {
+            console.log(`Proxy ${i + 1} error:`, err.message);
+            // Continue to next proxy
+        }
+    }
+    
+    // If all proxies failed
+    status.innerText = "All proxies failed. Trying direct fetch...";
+    
+    // Last resort: try direct fetch with CORS workaround
+    try {
+        // Method 1: Use 'no-cors' mode (limited)
+        const response = await fetch(url, {
+            mode: 'no-cors',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+        });
+        
+        // Note: 'no-cors' mode doesn't allow reading the response
+        // But we can try a different approach...
+        
+        // Method 2: Use a fetch polyfill that might bypass CORS
+        // Or try using XMLHttpRequest with special headers
+        status.innerText = "Please try: 1) Refresh page, 2) Clear cache, 3) Try later";
+        
+    } catch (finalErr) {
+        status.innerText = "Failed to fetch roster. The proxy services may be down.";
+        console.error("All fetch attempts failed:", finalErr);
+        
+        // Provide user with manual option
+        document.getElementById('rawNewsletter').placeholder = 
+            "Proxy services appear down. You can:\n1) Copy-paste roster content here manually\n2) Try again in 30 minutes\n3) Use browser extension like 'CORS Unblock'";
+    }
+}
+
+function parseRoster(text) {
+    const lines = text.split('\n');
+    let inIlneval = false;
+    let currentTeam = null;
+    roster = [];
+    for (let line of lines) {
+        const originalLine = line.replace(/\r/, '');
+        line = originalLine.trim();
+        if (line === '') continue;
+
+        if (line.startsWith('Manager:') && !line.includes('ILNEVAL (93)')) {
+            if (inIlneval) {
+                if (currentTeam) roster.push(currentTeam);
+                currentTeam = null;
+                inIlneval = false;
+                continue; // Skip further processing for other managers
+            }
+        }
+
+        if (line.startsWith('Manager: ILNEVAL (93)')) {
+            inIlneval = true;
+            continue;
+        }
+
+        if (!inIlneval) continue;
+
+        // Use originalLine for matching to preserve indentation
+        const teamMatch = originalLine.match(/^\s{3}(.+?)\s+\((\d+)\)\s+([\d-]+\-[\d-]+\-[\d]+)\s+Last Ran Turn (\d+)$/);
+        if (teamMatch) {
+            if (currentTeam) roster.push(currentTeam);
+            currentTeam = { teamName: teamMatch[1].trim(), teamRecord: teamMatch[3], warriors: [] };
+            turnInfo.number = parseInt(teamMatch[4]);
+            continue;
+        }
+
+        const warriorMatch = originalLine.match(/^\s{6}(.+?)\s+([A-Za-z-]+)\s+(Male|Female)\s+([\d-]+\-[\d-]+\-[\d]+)\s+(\d+)$/);
+        if (warriorMatch) {
+            const w = {
+                name: warriorMatch[1].trim(),
+                race: warriorMatch[2],
+                gender: warriorMatch[3],
+                record: warriorMatch[4]
+            };
+            if (currentTeam) currentTeam.warriors.push(w);
+        }
+    }
+    if (currentTeam) roster.push(currentTeam);
+    turnInfo.activeTeams = roster.length;
+}
+
+async function fetchNewsletter() {
+    const url = document.getElementById('newsletterUrl').value;
+    const status = document.getElementById('statusMsg');
+    if (!url) { status.innerText = "Error: Please enter a URL."; return; }
+    status.innerText = "Connecting...";
+    
+    const proxyServices = [
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://cors-anywhere.herokuapp.com/${url}`
+    ];
+    
+    for (let i = 0; i < proxyServices.length; i++) {
+        try {
+            status.innerText = `Trying newsletter proxy ${i + 1} of ${proxyServices.length}...`;
+            const response = await fetch(proxyServices[i], {
+                signal: AbortSignal.timeout(10000)
+            });
+            
+            if (!response.ok) continue;
+            
+            let text;
+            if (proxyServices[i].includes('api.allorigins.win')) {
+                const data = await response.json();
+                text = data.contents;
+            } else {
+                text = await response.text();
+            }
+            
+            if (text && text.length > 100) {
+                status.innerText = "Success!";
+                processData(text);
+                return;
+            }
+            
+        } catch (err) {
+            console.log(`Newsletter proxy ${i + 1} error:`, err.message);
+        }
+    }
+    
+    status.innerText = "Failed to fetch newsletter via proxies.";
+}
+
+function processData(text) {
+    const teamDb = {}; 
+    const recordDb = {};
+    
+    // Parse team info
+    const teamPattern = /(.+?)\s+\((\d+)\)\s+[\d\.]+\s+[\d\.]+\s+[\d\.]+\s+[\d\.]+\s+(.+?)\s+\((\d+)\)/g;
+    let teamMatch;
+    while ((teamMatch = teamPattern.exec(text)) !== null) {
+        teamDb[teamMatch[2]] = { team: teamMatch[1].trim(), mgr: teamMatch[3].trim() };
+    }
+    
+    // Parse manager turn stats
+    const playerPattern = /(?:\d+\s+)?\s*ILNEVAL\s*\(93\)\s+(\d+)\s+(\d+)\s+(\d+)\s+([\d\sM\(\)]+)\s+(\d+\.\d+)/;
+    const playerMatch = text.match(playerPattern);
+    if (playerMatch) {
+        turnInfo.record = `${playerMatch[1]}-${playerMatch[2]}`;
+        turnInfo.kills = playerMatch[3];
+        // Ignore dead for now
+        turnInfo.winRate = `${Math.round(parseFloat(playerMatch[5]))}%`;
+    }
+    
+    // Parse matchups and results
+    const matchupPattern = /([A-Z\s0-9'\-]+)\s+\((\d+)\)\s+\(([\d\-]+)\)\s+([A-Z\s0-9'\-]+)\s+\((\d+)\)\s+\(([\d\-]+)\)\s+(\d+)( KILL!)?/g;
+    let fights = {};
+    let match;
+    while ((match = matchupPattern.exec(text)) !== null) {
+        const winnerName = match[1].trim();
+        const winnerID = match[2];
+        const winnerRec = match[3];
+        const loserName = match[4].trim();
+        const loserID = match[5];
+        const loserRec = match[6];
+        const time = match[7];
+        const kill = !!match[8];
+        
+        fights[winnerName] = {
+            result: kill ? "KILL" : "WIN",
+            opponent: `${loserName} (${loserID})`,
+            time: `${time} min`
+        };
+        fights[loserName] = {
+            result: kill ? "SLAIN" : "LOSS",
+            opponent: `${winnerName} (${winnerID})`,
+            time: `${time} min`
+        };
+        
+        recordDb[winnerName] = winnerRec;
+        recordDb[winnerID] = winnerRec;
+        recordDb[loserName] = loserRec;
+        recordDb[loserID] = loserRec;
+    }
+    
+    // Assign fights to roster
+    roster.forEach(team => {
+        team.warriors.forEach(w => {
+            const f = fights[w.name];
+            if (f) {
+                w.result = f.result;
+                w.opponent = f.opponent;
+                w.time = f.time;
+            } else {
+                w.result = "NO FIGHT";
+                w.opponent = "";
+                w.time = "";
+            }
+        });
+    });
+    
+    // Render with updated data
+    renderArena(teamDb, recordDb);
+}
+
+function renderArena(teamDb = {}, recordDb = {}) {
+    // Update turn display
+    document.getElementById('turn-display').innerHTML = 
+        `Turn ${turnInfo.number} | Manager ID: ${turnInfo.managerID}`;
+    
+    // Render stats summary
+    const statsHtml = `
+        <div class="stat-card">
+            <div>MANAGER RECORD</div>
+            <div class="stat-value">${turnInfo.record}</div>
+        </div>
+        <div class="stat-card">
+            <div>ACTIVE TEAMS</div>
+            <div class="stat-value">${turnInfo.activeTeams}</div>
+        </div>
+        <div class="stat-card">
+            <div>KILLS THIS TURN</div>
+            <div class="stat-value">${turnInfo.kills}</div>
+        </div>
+        <div class="stat-card">
+            <div>WIN RATE</div>
+            <div class="stat-value">${turnInfo.winRate}</div>
+        </div>
+    `;
+    document.getElementById('stats-summary').innerHTML = statsHtml;
+    
+    // Render teams with records
+    const container = document.getElementById('teams-container');
+    container.innerHTML = '';
+    
+    roster.forEach(team => {
+        let warriorsHtml = '';
+        team.warriors.forEach(w => {
+            const resultType = (w.result || "NONE").toUpperCase();
+            let oppName = "";
+            let oppID = "???";
+            let resRecord = "Record Not Found";
+            let resTeam = { team: "Unknown Team", mgr: "Unknown Manager" };
+            let timeDisplay = "";
+            
+            if (w.opponent) {
+                const idMatch = w.opponent.match(/\((\d+)\)/);
+                if (idMatch) {
+                    oppID = idMatch[1];
+                    oppName = w.opponent.split(' (')[0].trim();
+                }
+                resRecord = recordDb[oppName] || recordDb[oppID] || "Record Not Found";
+                resTeam = teamDb[oppID] || { team: "Unknown Team", mgr: "Unknown Manager" };
+                timeDisplay = w.time;
+            }
+            
+            warriorsHtml += `
+                <div class="warrior-card card-${resultType.toLowerCase()}">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                        <span style="color:var(--gold); font-weight:bold">${w.name}</span>
+                        <span class="rec-label">${w.race} | ${w.gender} | ${w.record}</span>
+                    </div>
+                    ${w.result && w.result !== "NO FIGHT" ? `
+                    <div class="fight-entry">
+                        <div>
+                            <span class="res-${resultType.toLowerCase()}">${w.result}</span>
+                        </div>
+                        <div class="opp-block">
+                            <div class="opp-name">${oppName} (${oppID})</div>
+                            <div class="opp-record">Record: ${resRecord}</div>
+                            <div class="opp-team">Team: ${resTeam.team}</div>
+                            <div class="opp-mgr">MGR: ${resTeam.mgr}</div>
+                        </div>
+                    </div>
+                    ` : '<div style="text-align:center; color: #888;">No fight this turn</div>'}
+                </div>`;
+        });
+        
+        container.innerHTML += `
+			<div class="team-section" style="font-family: 'Cinzel Decorative', serif;">
+				<div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+					<h2 class="team-header" style="font-family: 'Cinzel Decorative', serif; margin: 0; text-decoration: none; border-bottom: none;">
+						${team.teamName}
+					</h2>
+					
+					<div style="text-align: right; color: var(--bronze); font-family: 'Cinzel Decorative', serif;">
+						<div style="font-size: 1.3rem; font-weight: bold; line-height: 1;">Team Record</div>
+						<div style="font-size: 1.3rem; line-height: 1;">${team.teamRecord}</div>
+					</div>
+				</div>
+				
+				<div style="width: 100%; margin: 1rem 0 1.5rem 0;">
+					<svg width="100%" height="30" viewBox="0 0 1000 30" preserveAspectRatio="none" style="display: block;">
+						<path d="M0,15 L15,8 L12,15 L15,22 Z" fill="var(--bronze)" />
+						<path d="M22,10 L27,15 L22,20 M32,10 L37,15 L32,20" fill="none" stroke="var(--bronze)" stroke-width="2" />
+						
+						<line x1="45" y1="15" x2="485" y2="15" stroke="var(--bronze)" stroke-width="1.5" />
+						
+						<g transform="translate(490, 5)">
+							<path d="M0,0 L20,0 L20,12 C20,18 10,22 10,22 C10,22 0,18 0,12 Z" fill="var(--bronze)" />
+							<path d="M4,4 L16,4 L16,11 C16,15 10,18 10,18 C10,18 4,15 4,11 Z" fill="black" opacity="0.3" />
+						</g>
+						
+						<line x1="515" y1="15" x2="955" y2="15" stroke="var(--bronze)" stroke-width="1.5" />
+						
+						<path d="M978,10 L973,15 L978,20 M968,10 L963,15 L968,20" fill="none" stroke="var(--bronze)" stroke-width="2" />
+						<path d="M1000,15 L985,8 L988,15 L985,22 Z" fill="var(--bronze)" />
+					</svg>
+				</div>
+						
+				<div style="font-family: 'Cinzel', serif;">
+					${warriorsHtml}
+				</div>
+			</div>`;
+    });
+}
+
+// Optionally fetch roster on load if desired, but per user request, wait for input
+// fetchRoster();
+</script>
+</body>
+</html>

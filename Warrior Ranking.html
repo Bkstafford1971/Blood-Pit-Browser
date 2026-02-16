@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilneval's War Council | Rankings</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --blood-red: #8B0000; 
+            --dark-stone: #0a0a0a; 
+            --bronze: #CD7F32; 
+            --gold: #FFD700; 
+            --parchment: #F4E4C1; 
+            --iron: #444;
+        }
+        
+        body { 
+            font-family: 'Cinzel', serif; 
+            background: linear-gradient(135deg, var(--dark-stone) 0%, #1a0000 100%); 
+            color: var(--parchment); 
+            min-height: 100vh; 
+            padding: 2rem; 
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        header { 
+            text-align: center; 
+            margin-bottom: 2rem; 
+            padding: 2rem; 
+            border: 2px solid var(--bronze);
+            background: rgba(0,0,0,0.7);
+            position: relative;
+        }
+
+        h1 { 
+            font-family: 'Cinzel Decorative', serif; 
+            font-size: 3.5rem; 
+            background: linear-gradient(180deg, var(--gold) 0%, var(--bronze) 100%); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            margin-bottom: 0.5rem;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            background: var(--blood-red);
+            font-size: 0.8rem;
+            border: 1px solid var(--gold);
+            color: white;
+            letter-spacing: 2px;
+            margin-top: 10px;
+        }
+
+        .refresh-btn {
+            background: var(--blood-red);
+            color: var(--gold);
+            border: 1px solid var(--gold);
+            padding: 10px 25px;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: var(--bronze);
+            color: black;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: rgba(0, 0, 0, 0.85); 
+            border: 1px solid var(--bronze);
+            margin-top: 2rem;
+        }
+
+        th { 
+            background: var(--blood-red); 
+            color: var(--gold); 
+            padding: 15px; 
+            text-align: left; 
+            font-family: 'Cinzel Decorative', serif;
+            border-bottom: 3px solid var(--bronze);
+            font-size: 1rem;
+        }
+
+        td { 
+            padding: 15px; 
+            border-bottom: 1px solid var(--iron); 
+            font-size: 1.1rem;
+        }
+
+        tr:hover { background: rgba(205, 127, 50, 0.1); }
+
+        .rank-num {
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: 900;
+            color: var(--gold);
+            font-size: 1.4rem;
+        }
+
+        .warrior-name {
+            font-weight: bold;
+            color: var(--parchment);
+            letter-spacing: 1px;
+        }
+
+        .stat-val { text-align: center; }
+        .kill-val { color: #ff4444; font-weight: bold; }
+
+        .loading-overlay {
+            padding: 50px;
+            text-align: center;
+            font-style: italic;
+            color: var(--bronze);
+        }
+    </style>
+</head>
+<body onload="scoutIlneval()">
+
+<div class="container">
+    <header>
+        <h1>Ilneval's Elite</h1>
+        <div style="color: var(--bronze); font-size: 1.2rem; letter-spacing: 5px;">WARRIOR MATCHUP RANKINGS</div>
+        <div id="statusUpdate" class="status-badge">AWAITING COMMAND</div>
+        <br>
+        <button class="refresh-btn" onclick="scoutIlneval()">CONSULT THE ORACLES (REFRESH)</button>
+    </header>
+
+    <div id="loadingMsg" class="loading-overlay" style="display:none;">
+        Gathering intel from the Blood Pit...
+    </div>
+
+    <table id="rankingsTable" style="display:none;">
+        <thead>
+            <tr>
+                <th style="width: 100px;">Rank</th>
+                <th>Warrior Name</th>
+                <th style="text-align: center;">Wins</th>
+                <th style="text-align: center;">Losses</th>
+                <th style="text-align: center;">Kills</th>
+                <th>Manager</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+async function scoutIlneval() {
+    const target = "ILNEVAL (93)";
+    const url = "https://bloodpit.net/reports/matchup.php";
+    const status = document.getElementById('statusUpdate');
+    const table = document.getElementById('rankingsTable');
+    const loading = document.getElementById('loadingMsg');
+    const tbody = document.getElementById('tableBody');
+
+    // Restore the full 5-proxy list from your Bloodpit4 file
+    const proxyServices = [
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://cors-anywhere.herokuapp.com/${url}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+        `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`
+    ];
+
+    tbody.innerHTML = '';
+    table.style.display = 'none';
+    loading.style.display = 'block';
+    status.innerText = "OPENING CONDUITS...";
+
+    for (let i = 0; i < proxyServices.length; i++) {
+        try {
+            status.innerText = `PROXY ATTEMPT ${i + 1}/5...`;
+            
+            const resp = await fetch(proxyServices[i], { signal: AbortSignal.timeout(6000) });
+            if (!resp.ok) continue;
+
+            let text;
+            if (proxyServices[i].includes('allorigins')) {
+                const json = await resp.json();
+                text = json.contents;
+            } else {
+                text = await resp.text();
+            }
+
+            if (text && text.includes("Warrior Name")) {
+                parseTable(text, target);
+                status.innerText = "INTEL RECEIVED";
+                loading.style.display = 'none';
+                table.style.display = 'table';
+                return;
+            }
+        } catch (err) {
+            console.warn(`Proxy ${i+1} failed.`);
+        }
+    }
+
+    loading.style.display = 'none';
+    status.innerText = "ALL CONDUITS FAILED";
+}
+
+function parseTable(text, target) {
+    const lines = text.split('\n');
+    const tbody = document.getElementById('tableBody');
+    let warriorsFound = 0;
+
+    lines.forEach(line => {
+        // Look for your specific manager ID
+        if (line.includes(target)) {
+            // Precise column slicing for the Bloodpit fixed-width text table
+            const name = line.substring(0, 32).trim();
+            const win = line.substring(33, 37).trim();
+            const loss = line.substring(38, 44).trim();
+            const kill = line.substring(45, 50).trim();
+            const rank = line.substring(51, 60).trim();
+
+            const row = `
+                <tr>
+                    <td class="rank-num">#${rank}</td>
+                    <td class="warrior-name">${name}</td>
+                    <td class="stat-val">${win}</td>
+                    <td class="stat-val">${loss}</td>
+                    <td class="stat-val kill-val">${kill}</td>
+                    <td style="font-size: 0.8rem; opacity: 0.7;">${target}</td>
+                </tr>
+            `;
+            tbody.innerHTML += row;
+            warriorsFound++;
+        }
+    });
+
+    if (warriorsFound === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px;">No warriors found in current turn rankings.</td></tr>`;
+    }
+}
+</script>
+
+</body>
+</html>

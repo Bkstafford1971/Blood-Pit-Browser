@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilneval's Warriors - Blood Pit Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --blood-red: #8B0000; --dark-stone: #1a1a1a; --bronze: #CD7F32; --gold: #FFD700; --parchment: #F4E4C1; }
+        body { font-family: 'Cinzel', serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a0000 100%); color: var(--parchment); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2rem; padding: 1.5rem; border-bottom: 3px solid var(--bronze); }
+        h1 { font-family: 'Cinzel Decorative', serif; font-size: 3.5rem; background: linear-gradient(180deg, var(--gold) 0%, var(--bronze) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .automation-box { background: rgba(0,0,0,0.8); border: 2px solid var(--gold); padding: 20px; border-radius: 8px; margin-bottom: 2rem; text-align: center; }
+        .url-input { width: 70%; padding: 12px; background: #111; border: 1px solid var(--bronze); color: var(--gold); margin-bottom: 10px; border-radius: 4px; }
+        
+        .input-box { background: rgba(0,0,0,0.7); border: 1px solid var(--bronze); padding: 15px; border-radius: 8px; margin-bottom: 2rem; text-align: center; }
+        textarea { width: 100%; height: 80px; background: #000; color: #00ff00; border: 1px solid #444; padding: 10px; font-family: monospace; font-size: 0.8rem; }
+        
+        button { background: var(--blood-red); color: white; border: 1px solid var(--gold); padding: 12px 25px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; text-transform: uppercase; }
+        button:hover { background: var(--bronze); color: black; }
+
+        .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .stat-card { background: rgba(205, 127, 50, 0.1); border: 2px solid var(--bronze); padding: 1.5rem; text-align: center; border-radius: 10px; }
+        .stat-value { font-size: 2.5rem; color: var(--gold); }
+        .team-section { margin-bottom: 3rem; background: rgba(26, 26, 26, 0.8); border: 2px solid var(--bronze); border-radius: 15px; padding: 2rem; }
+        .team-header { font-family: 'Cinzel Decorative', serif; font-size: 2rem; border-bottom: 2px solid var(--bronze); color: var(--gold); padding-bottom: 10px; margin-bottom: 1.5rem; }
+        
+        .warrior-card { background: rgba(139, 0, 0, 0.1); border-left: 6px solid var(--bronze); padding: 1.2rem; border-radius: 8px; margin-bottom: 1rem; }
+        
+        /* Adjusted Fight Entry to allow for the result box fix */
+        .fight-entry { 
+            padding: 1rem; 
+            background: rgba(0, 0, 0, 0.4); 
+            border-radius: 5px; 
+            margin-top: 1rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; /* Vertical centering */
+            border: 1px solid rgba(205, 127, 50, 0.2); 
+        }
+        
+        /* Fixed Result Box Size */
+        .res-win, .res-loss, .res-kill, .res-slain { 
+            display: inline-block;
+            padding: 6px 14px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            text-align: center;
+            min-width: 80px;
+            height: fit-content;
+        }
+        .res-win { background-color: #008000; color: white; }
+        .res-loss { background-color: #FF0000; color: white; }
+        .res-kill { background-color: #0000FF; color: white; }
+        .res-slain { background-color: #000000; color: white; border: 1px solid #444; }
+
+        .card-win { border-left-color: #008000; }
+        .card-loss { border-left-color: #FF0000; }
+        .card-kill { border-left-color: #0000FF; }
+        .card-slain { border-left-color: #000000; }
+
+        /* Opponent Information Stacking */
+        .opp-block { text-align: right; line-height: 1.4; }
+        .opp-name { font-weight: bold; color: var(--gold); font-size: 1.1rem; }
+        .opp-record { color: #fff; font-size: 0.95rem; }
+        .opp-team { color: var(--parchment); font-size: 0.85rem; font-variant: small-caps; }
+        .opp-mgr { color: var(--bronze); font-size: 0.8rem; font-style: italic; }
+
+        .rec-label { font-size: 0.9rem; opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ilneval's Dashboard</h1>
+            <div id="turn-display"></div>
+        </header>
+
+        <div class="automation-box">
+            <input type="text" id="newsletterUrl" class="url-input" placeholder="Paste Public Newsletter URL...">
+            <br>
+            <button onclick="fetchNewsletter()">Fetch & Update</button>
+            <p id="statusMsg" style="font-size: 0.8rem; margin-top: 10px; color: #888;"></p>
+        </div>
+
+        <div class="input-box">
+            <details>
+                <summary style="cursor: pointer; color: var(--bronze);">Manual Paste Fallback</summary>
+                <textarea id="rawNewsletter" style="margin-top:10px;"></textarea>
+                <button onclick="processData(document.getElementById('rawNewsletter').value)">Process Manual Text</button>
+            </details>
+        </div>
+
+        <div id="stats-summary" class="stats-summary"></div>
+        <div id="teams-container"></div>
+    </div>
+
+<script>
+const turnInfo = { number: 1342, managerID: 93, record: "15-10", activeTeams: 5, kills: 3, winRate: "60%" };
+
+const roster = [
+    {
+        teamName: "Riekland Reavers", teamRecord: "3056-2487-107",
+        warriors: [
+            { name: "DARK TRANQUILITY", race: "Dwarf", gender: "M", record: "34-22-1", result: "WIN", opponent: "BLASTER (1846)", time: "3 min" },
+            { name: "WRITHEN HILT", race: "Dwarf", gender: "M", record: "29-27-1", result: "WIN", opponent: "SHOE FLY (863)", time: "2 min" },
+            { name: "STERRENHEMEL", race: "Dwarf", gender: "M", record: "5-6-0", result: "WIN", opponent: "HYPERION (2088)", time: "3 min" },
+            { name: "JUST AVERAGE", race: "Human", gender: "M", record: "107-95-2", result: "KILL", opponent: "OSRIC (1967)", time: "3 min" },
+            { name: "ORIKROL BONEPIKE", race: "Dwarf", gender: "M", record: "41-17-2", result: "WIN", opponent: "CUPLIX (1908)", time: "2 min" }
+        ]
+    },
+    {
+        teamName: "Orcland Raiders", teamRecord: "3050-2476-154",
+        warriors: [
+            { name: "KRUUSK", race: "Half-Orc", gender: "M", record: "7-6-1", result: "LOSS", opponent: "BRAINLESS BRY (2110)", time: "2 min" },
+            { name: "HARAGAR KILURK", race: "Half-Orc", gender: "M", record: "59-40-5", result: "LOSS", opponent: "KRH COPO (398)", time: "2 min" },
+            { name: "USHARA URGOK", race: "Half-Orc", gender: "M", record: "15-5-0", result: "WIN", opponent: "TIGER TY (2347)", time: "2 min" },
+            { name: "GRAXIL MOURNCALLER", race: "Half-Orc", gender: "M", record: "19-15-0", result: "LOSS", opponent: "ANNELLI STARBOURNE (2085)", time: "4 min" },
+            { name: "KARRUK VARKOTH", race: "Half-Orc", gender: "M", record: "8-13-0", result: "LOSS", opponent: "BLOOMINGTON (598)", time: "3 min" }
+        ]
+    },
+    {
+        teamName: "Vestian Renegades", teamRecord: "2968-2581-130",
+        warriors: [
+            { name: "AUTHLAN BRONDAWN", race: "Elf", gender: "M", record: "7-7-0", result: "WIN", opponent: "VALAR (1918)", time: "3 min" },
+            { name: "KROMGRUN THRUBRIK", race: "Dwarf", gender: "M", record: "48-38-1", result: "LOSS", opponent: "LAMMY (838)", time: "2 min" },
+            { name: "NARCISSUS", race: "Half-Orc", gender: "M", record: "29-22-1", result: "LOSS", opponent: "MEKGINEER THERMAPLUG (1944)", time: "2 min" },
+            { name: "WICK MORGUL", race: "Halfling", gender: "M", record: "21-20-0", result: "WIN", opponent: "EILA GARNETSTONE (2271)", time: "2 min" },
+            { name: "ASTRAN LYRDEN", race: "Half-Elf", gender: "M", record: "0-1-0", result: "LOSS", opponent: "CYRUS (791)", time: "2 min" }
+        ]
+    },
+    {
+        teamName: "Last Command", teamRecord: "3027-2393-123",
+        warriors: [
+            { name: "MENTALLY YOURS", race: "Human", gender: "F", record: "30-21-0", result: "WIN", opponent: "CHUPACABRA (806)", time: "3 min" },
+            { name: "MAELIN MIRTHHIDE", race: "Elf", gender: "M", record: "3-4-0", result: "WIN", opponent: "TICKLE TICKLE (1828)", time: "2 min" },
+            { name: "MAYJUR BLUDD", race: "Human", gender: "M", record: "8-7-2", result: "KILL", opponent: "GEDMEL (1695)", time: "4 min" },
+            { name: "IRAKUL GITHAM", race: "Elf", gender: "M", record: "13-10-1", result: "KILL", opponent: "KAAR TISSUELICKER (2267)", time: "2 min" },
+            { name: "MALRIK SALVOR", race: "Human", gender: "M", record: "0-1-0", result: "LOSS", opponent: "WABI-SABI (725)", time: "2 min" }
+        ]
+    },
+    {
+        teamName: "Silent Rage", teamRecord: "3029-2339-130",
+        warriors: [
+            { name: "HERMYAR DUTHRETH", race: "Elf", gender: "M", record: "38-22-2", result: "WIN", opponent: "THE BOOGYMAN (2327)", time: "2 min" },
+            { name: "PANTOMMIND", race: "Half-Orc", gender: "M", record: "24-22-2", result: "LOSS", opponent: "KAGA (2251)", time: "4 min" },
+            { name: "DORARIN BLACKPIKE", race: "Human", gender: "M", record: "11-6-0", result: "WIN", opponent: "RAMPANT HORNICUS (1963)", time: "2 min" },
+            { name: "XYRUS LORIK", race: "Half-Elf", gender: "M", record: "9-4-1", result: "LOSS", opponent: "ASH MARCH (1980)", time: "2 min" },
+            { name: "AMMORIAN VALON", race: "Elf", gender: "M", record: "17-8-2", result: "LOSS", opponent: "IT (1882)", time: "3 min" }
+        ]
+    }
+];
+
+async function fetchNewsletter() {
+    const url = document.getElementById('newsletterUrl').value;
+    const status = document.getElementById('statusMsg');
+    if (!url) { status.innerText = "Error: Please enter a URL."; return; }
+    status.innerText = "Connecting...";
+    try {
+        const proxyUrl = "https://api.allorigins.win/get?url=" + encodeURIComponent(url);
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+        if (data.contents) {
+            status.innerText = "Success!";
+            processData(data.contents);
+        }
+    } catch (err) { status.innerText = "Failed to fetch."; }
+}
+
+function processData(text) {
+    const teamDb = {}; 
+    const recordDb = {};
+    
+    // First, build a list of opponent names/IDs we're looking for
+    const opponentLookup = {};
+    roster.forEach(team => {
+        team.warriors.forEach(w => {
+            const idMatch = w.opponent.match(/\((\d+)\)/);
+            if (idMatch) {
+                const oppID = idMatch[1];
+                const oppName = w.opponent.split(' (')[0].trim();
+                opponentLookup[oppName] = oppID;
+                opponentLookup[oppID] = oppName;
+            }
+        });
+    });
+    
+    // Now look for matchup lines containing these opponents
+    // Pattern for matchup lines: NAME (ID) (RECORD) spaces NAME (ID) (RECORD) spaces time
+    const matchupPattern = /([A-Z\s0-9'\-]+)\s+\((\d+)\)\s+\(([\d\-]+)\)\s+([A-Z\s0-9'\-]+)\s+\((\d+)\)\s+\(([\d\-]+)\)\s+\d+/g;
+    
+    let match;
+    while ((match = matchupPattern.exec(text)) !== null) {
+        const warrior1Name = match[1].trim();
+        const warrior1ID = match[2];
+        const warrior1Record = match[3];
+        const warrior2Name = match[4].trim();
+        const warrior2ID = match[5];
+        const warrior2Record = match[6];
+        
+        // Check if either warrior is in our opponent lookup
+        if (opponentLookup[warrior1Name] || opponentLookup[warrior1ID]) {
+            recordDb[warrior1Name] = warrior1Record;
+            recordDb[warrior1ID] = warrior1Record;
+        }
+        
+        if (opponentLookup[warrior2Name] || opponentLookup[warrior2ID]) {
+            recordDb[warrior2Name] = warrior2Record;
+            recordDb[warrior2ID] = warrior2Record;
+        }
+    }
+    
+    // Also look for standalone records as fallback
+    const standalonePattern = /([A-Z\s0-9'\-]+)\s+\((\d+)\)\s+\(([\d\-]+)\)/g;
+    standalonePattern.lastIndex = 0;
+    
+    while ((match = standalonePattern.exec(text)) !== null) {
+        const name = match[1].trim();
+        const id = match[2];
+        const record = match[3];
+        
+        // Only use if we need it and don't already have it
+        if ((opponentLookup[name] || opponentLookup[id]) && !recordDb[name] && !recordDb[id]) {
+            recordDb[name] = record;
+            recordDb[id] = record;
+        }
+    }
+    
+    // Team info pattern
+    const teamPattern = /(.+?)\s+\((\d+)\)\s+[\d\.]+\s+[\d\.]+\s+[\d\.]+\s+[\d\.]+\s+(.+?)\s+\((\d+)\)/g;
+    while ((match = teamPattern.exec(text)) !== null) {
+        teamDb[match[2]] = { team: match[1].trim(), mgr: match[3].trim() };
+    }
+    
+    renderArena(teamDb, recordDb);
+}
+
+// Update the renderArena function to include stats summary and team records
+function renderArena(teamDb = {}, recordDb = {}) {
+    // Update turn display
+    document.getElementById('turn-display').innerHTML = 
+        `Turn ${turnInfo.number} | Manager ID: ${turnInfo.managerID}`;
+    
+    // Render stats summary
+    const statsHtml = `
+        <div class="stat-card">
+            <div>MANAGER RECORD</div>
+            <div class="stat-value">${turnInfo.record}</div>
+        </div>
+        <div class="stat-card">
+            <div>ACTIVE TEAMS</div>
+            <div class="stat-value">${turnInfo.activeTeams}</div>
+        </div>
+        <div class="stat-card">
+            <div>KILLS THIS TURN</div>
+            <div class="stat-value">${turnInfo.kills}</div>
+        </div>
+        <div class="stat-card">
+            <div>WIN RATE</div>
+            <div class="stat-value">${turnInfo.winRate}</div>
+        </div>
+    `;
+    document.getElementById('stats-summary').innerHTML = statsHtml;
+    
+    // Render teams with records
+    const container = document.getElementById('teams-container');
+    container.innerHTML = '';
+    
+    roster.forEach(team => {
+        let warriorsHtml = '';
+        team.warriors.forEach(w => {
+            const resultType = w.result.toUpperCase();
+            const idMatch = w.opponent.match(/\((\d+)\)/);
+            const oppID = idMatch ? idMatch[1] : "???";
+            const oppName = w.opponent.split(' (')[0].trim();
+
+            const resTeam = teamDb[oppID] || { team: "Unknown Team", mgr: "Unknown Manager" };
+            const resRecord = recordDb[oppName] || recordDb[oppID] || "Record Not Found";
+
+            warriorsHtml += `
+                <div class="warrior-card card-${resultType.toLowerCase()}">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 5px;">
+                        <span style="color:var(--gold); font-weight:bold">${w.name}</span>
+                        <span class="rec-label">${w.race} | ${w.gender} | ${w.record}</span>
+                    </div>
+                    <div class="fight-entry">
+                        <div>
+                            <span class="res-${resultType.toLowerCase()}">${w.result}</span>
+                        </div>
+                        <div class="opp-block">
+                            <div class="opp-name">${oppName} (${oppID})</div>
+                            <div class="opp-record">Record: ${resRecord}</div>
+                            <div class="opp-team">Team: ${resTeam.team}</div>
+                            <div class="opp-mgr">MGR: ${resTeam.mgr}</div>
+                        </div>
+                    </div>
+                </div>`;
+        });
+        
+        // Add team record to the team header
+        container.innerHTML += `
+            <div class="team-section">
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1rem;">
+                    <h2 class="team-header">${team.teamName}</h2>
+                    <div style="text-align: right; color: var(--bronze); font-family: 'Cinzel', serif;">
+                        <div style="font-size: 1.2rem; font-weight: bold;">Team Record</div>
+                        <div style="font-size: 1rem;">${team.teamRecord}</div>
+                    </div>
+                </div>
+                ${warriorsHtml}
+            </div>`;
+    });
+}
+
+// Also update the initial render
+renderArena();
+</script>
+</body>
+</html>

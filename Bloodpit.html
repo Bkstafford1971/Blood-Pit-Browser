@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilneval's War Council - Complete Intel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --blood-red: #8B0000; --dark-stone: #1a1a1a; --bronze: #CD7F32; --gold: #FFD700; --parchment: #F4E4C1; }
+        body { font-family: 'Cinzel Decorative', serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a0000 100%); color: var(--parchment); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 2rem; padding: 1.5rem; border-bottom: 3px solid var(--bronze); }
+        h1 { font-family: 'Cinzel Decorative', serif; font-size: 3.5rem; background: linear-gradient(180deg, var(--gold) 0%, var(--bronze) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .tab-nav { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+        .tab-btn { background: #111; border: 1px solid var(--bronze); color: var(--bronze); padding: 10px 20px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; }
+        .tab-btn.active { background: var(--blood-red); color: var(--gold); border-color: var(--gold); }
+
+        .automation-box { background: rgba(0,0,0,0.8); border: 2px solid var(--gold); padding: 20px; border-radius: 8px; margin-bottom: 2rem; text-align: center; }
+        .url-input { width: 30%; padding: 12px; background: #111; border: 1px solid var(--bronze); color: var(--gold); margin-bottom: 10px; border-radius: 4px; font-size: 0.8rem; }
+        
+        button { background: var(--blood-red); color: white; border: 1px solid var(--gold); padding: 12px 25px; cursor: pointer; font-family: 'Cinzel', serif; font-weight: bold; text-transform: uppercase; }
+        button:hover { background: var(--bronze); color: black; }
+
+        .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .stat-card { background: rgba(205, 127, 50, 0.1); border: 2px solid var(--bronze); padding: 1.5rem; text-align: center; border-radius: 10px; }
+        .stat-value { font-size: 2.5rem; color: var(--gold); }
+        .team-section { margin-bottom: 3rem; background: rgba(26, 26, 26, 0.8); border: 2px solid var(--bronze); border-radius: 15px; padding: 2rem; }
+        .team-header { font-family: 'Cinzel Decorative', serif; font-size: 2rem; border-bottom: none; color: var(--gold); margin-bottom: 0; }
+        
+        .warrior-card { background: rgba(139, 0, 0, 0.1); border-left: 6px solid var(--bronze); padding: 1.2rem; border-radius: 16px; margin-bottom: 1rem; position: relative; font-family: 'Cinzel', serif; }
+        .rank-badge { position: absolute; top: 1.2rem; right: 10px; background: var(--gold); color: black; font-weight: 900; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; border: 1px solid black; }
+
+        .fight-entry { padding: 1rem; background: rgba(0, 0, 0, 0.4); border-radius: 5px; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(205, 127, 50, 0.2); }
+        
+        .res-win, .res-loss, .res-kill, .res-slain { display: inline-block; padding: 6px 14px; border-radius: 4px; font-weight: bold; text-align: center; min-width: 80px; text-transform: uppercase; font-size: 0.8rem;}
+        .res-win { background-color: #008000; color: white; }
+        .res-loss { background-color: #FF0000; color: white; }
+        .res-kill { background-color: #0000FF; color: white; }
+        .res-slain { background-color: #000000; color: white; border: 1px solid #444; }
+
+        .card-win { border-left-color: #008000; }
+        .card-loss { border-left-color: #FF0000; }
+        .card-kill { border-left-color: #0000FF; }
+        .card-slain { border-left-color: #000000; }
+
+        .opp-block { text-align: right; line-height: 1.3; }
+        .opp-name { font-weight: bold; color: var(--gold); font-size: 1.1rem; }
+        .opp-record { color: #fff; font-size: 0.95rem; }
+        .opp-team { color: var(--parchment); font-size: 0.85rem; font-variant: small-caps; }
+        .opp-mgr { color: var(--bronze); font-size: 0.8rem; font-style: italic; }
+
+        .rankings-table { width: 100%; border-collapse: collapse; margin-top: 1rem; background: #000; }
+        .rankings-table th { background: var(--blood-red); color: var(--gold); padding: 12px; border: 1px solid var(--bronze); text-align: left; }
+        .rankings-table td { padding: 10px; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ilneval's Dashboard</h1>
+            <div id="turn-display"></div>
+        </header>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('main-view')">Warrior Results</button>
+            <button class="tab-btn" onclick="switchTab('rank-view')">Arena Standings</button>
+        </div>
+
+        <div id="main-view" class="tab-content">
+            <div class="automation-box">
+                <input type="text" id="rosterUrl" class="url-input" value="https://bloodpit.net/reports/roster.php">
+                <input type="text" id="newsletterUrl" class="url-input" value="https://bloodpit.net/reports/news.php">
+                <input type="hidden" id="rankingsUrl" value="https://bloodpit.net/reports/matchup.php">
+                <br>
+                <button onclick="fetchAllData()">Gather All Intel</button>
+                <p id="statusMsg" style="font-size: 0.8rem; margin-top: 10px; color: #888;"></p>
+            </div>
+
+            <div id="stats-summary" class="stats-summary"></div>
+            <div id="teams-container"></div>
+        </div>
+
+        <div id="rank-view" class="tab-content" style="display:none;">
+            <div class="team-section">
+                <h2 class="team-header">Global Arena Rankings (Ilneval)</h2>
+                <table class="rankings-table">
+                    <thead>
+                        <tr><th>Rank</th><th>Warrior</th><th>Wins</th><th>Losses</th><th>Kills</th></tr>
+                    </thead>
+                    <tbody id="rankingsBody"><tr><td colspan="5">Fetch data to see rankings...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script>
+let roster = [];
+let arenaRanks = {}; 
+let turnInfo = { number: 0, managerID: 93, record: "?-?", activeTeams: 0, kills: 0, winRate: "?%" };
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).style.display = 'block';
+    event.currentTarget.classList.add('active');
+}
+
+async function fetchWithProxy(url) {
+    const proxyServices = [
+        `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+        `https://thingproxy.freeboard.io/fetch/${encodeURIComponent(url)}`
+    ];
+    for (let i = 0; i < proxyServices.length; i++) {
+        try {
+            const response = await fetch(proxyServices[i], { signal: AbortSignal.timeout(8000) });
+            if (!response.ok) continue;
+            let text;
+            if (proxyServices[i].includes('api.allorigins.win')) {
+                const data = await response.json();
+                text = data.contents;
+            } else {
+                text = await response.text();
+            }
+            if (text && text.length > 50) return text;
+        } catch (err) { console.warn(`Proxy failed`); }
+    }
+    return null;
+}
+
+async function fetchAllData() {
+    const status = document.getElementById('statusMsg');
+    status.innerText = "Consulting the scrolls...";
+    
+    const rosterText = await fetchWithProxy(document.getElementById('rosterUrl').value);
+    if (rosterText) parseRoster(rosterText);
+
+    const rankText = await fetchWithProxy(document.getElementById('rankingsUrl').value);
+    if (rankText) parseRankings(rankText);
+
+    const newsText = await fetchWithProxy(document.getElementById('newsletterUrl').value);
+    if (newsText) processData(newsText);
+
+    status.innerText = "Intel gathered.";
+}
+
+function parseRankings(text) {
+    const lines = text.split('\n');
+    arenaRanks = {};
+    const tbody = document.getElementById('rankingsBody');
+    tbody.innerHTML = '';
+
+    lines.forEach(line => {
+        if (line.includes("ILNEVAL (93)")) {
+            const name = line.substring(0, 32).trim();
+            const win = line.substring(33, 37).trim();
+            const loss = line.substring(38, 44).trim();
+            const kill = line.substring(45, 50).trim();
+            const rank = line.substring(51, 60).trim();
+            arenaRanks[name.toUpperCase()] = rank;
+            tbody.innerHTML += `<tr><td style="color:var(--gold); font-weight:bold;">#${rank}</td><td>${name}</td><td>${win}</td><td>${loss}</td><td style="color:red">${kill}</td></tr>`;
+        }
+    });
+}
+
+function parseRoster(text) {
+    const lines = text.split('\n');
+    let inIlneval = false;
+    let currentTeam = null;
+    roster = [];
+    for (let line of lines) {
+        const originalLine = line.replace(/\r/, '');
+        const trimmed = originalLine.trim();
+        if (trimmed === '') continue;
+        if (trimmed.startsWith('Manager: ILNEVAL (93)')) { inIlneval = true; continue; }
+        if (trimmed.startsWith('Manager:') && !trimmed.includes('ILNEVAL (93)')) { inIlneval = false; continue; }
+        if (!inIlneval) continue;
+
+        const teamMatch = originalLine.match(/^\s{3}(.+?)\s+\((\d+)\)\s+([\d-]+\-[\d-]+\-[\d]+)\s+Last Ran Turn (\d+)$/);
+        if (teamMatch) {
+            if (currentTeam) roster.push(currentTeam);
+            currentTeam = { teamName: teamMatch[1].trim(), teamRecord: teamMatch[3], warriors: [] };
+            turnInfo.number = parseInt(teamMatch[4]);
+            continue;
+        }
+        const warriorMatch = originalLine.match(/^\s{6}(.+?)\s+([A-Za-z-]+)\s+(Male|Female)\s+([\d-]+\-[\d-]+\-[\d]+)\s+(\d+)$/);
+        if (warriorMatch) currentTeam.warriors.push({ name: warriorMatch[1].trim(), race: warriorMatch[2], record: warriorMatch[4] });
+    }
+    if (currentTeam) roster.push(currentTeam);
+    turnInfo.activeTeams = roster.length;
+}
+
+function processData(text) {
+    const teamDb = {}; 
+    const recordDb = {};
+    const fights = {};
+    
+    // Restore Opponent Team and Manager Parsing Logic
+    const teamPattern = /(.+?)\s+\((\d+)\)\s+[\d\.]+\s+[\d\.]+\s+[\d\.]+\s+[\d\.]+\s+(.+?)\s+\((\d+)\)/g;
+    let teamMatch;
+    while ((teamMatch = teamPattern.exec(text)) !== null) {
+        teamDb[teamMatch[2]] = { team: teamMatch[1].trim(), mgr: teamMatch[3].trim() };
+    }
+    
+    const matchupPattern = /([A-Z\s0-9'\-]+)\s+\((\d+)\)\s+\(([\d\-]+)\)\s+([A-Z\s0-9'\-]+)\s+\((\d+)\)\s+\(([\d\-]+)\)\s+(\d+)( KILL!)?/g;
+    let match;
+    while ((match = matchupPattern.exec(text)) !== null) {
+        const winner = match[1].trim();
+        const winID = match[2];
+        const winRec = match[3];
+        const loser = match[4].trim();
+        const losID = match[5];
+        const losRec = match[6];
+        const kill = !!match[8];
+        
+        fights[winner] = { res: kill ? "KILL" : "WIN", opp: loser, oppID: losID, oppRec: losRec };
+        fights[loser] = { res: kill ? "SLAIN" : "LOSS", opp: winner, oppID: winID, oppRec: winRec };
+        recordDb[winner] = winRec; recordDb[loser] = losRec;
+    }
+
+    const pMatch = text.match(/ILNEVAL\s*\(93\)\s+(\d+)\s+(\d+)\s+(\d+)\s+([\d\sM\(\)]+)\s+(\d+\.\d+)/);
+    if (pMatch) {
+        turnInfo.record = `${pMatch[1]}-${pMatch[2]}`;
+        turnInfo.kills = pMatch[3];
+        turnInfo.winRate = `${Math.round(parseFloat(pMatch[5]))}%`;
+    }
+
+    roster.forEach(team => {
+        team.warriors.forEach(w => {
+            const f = fights[w.name];
+            if (f) {
+                w.result = f.res;
+                w.opponent = f.opp;
+                w.oppID = f.oppID;
+                w.oppRecord = f.oppRec;
+                const db = teamDb[f.oppID] || { team: "Unknown Team", mgr: "Unknown" };
+                w.oppTeam = db.team;
+                w.oppMgr = db.mgr;
+            } else { w.result = "NO FIGHT"; }
+        });
+    });
+    renderArena();
+}
+
+function renderArena() {
+    document.getElementById('turn-display').innerHTML = `Turn ${turnInfo.number} | Manager ID: ${turnInfo.managerID}`;
+    document.getElementById('stats-summary').innerHTML = `
+        <div class="stat-card"><div>MANAGER RECORD</div><div class="stat-value">${turnInfo.record}</div></div>
+        <div class="stat-card"><div>ACTIVE TEAMS</div><div class="stat-value">${turnInfo.activeTeams}</div></div>
+        <div class="stat-card"><div>KILLS</div><div class="stat-value">${turnInfo.kills}</div></div>
+        <div class="stat-card"><div>WIN RATE</div><div class="stat-value">${turnInfo.winRate}</div></div>`;
+    
+    const container = document.getElementById('teams-container');
+    container.innerHTML = '';
+    
+    roster.forEach(team => {
+        let warriorsHtml = '';
+        team.warriors.forEach(w => {
+            const res = (w.result || "NONE").toLowerCase();
+            const rank = arenaRanks[w.name.toUpperCase()] || "Unranked";
+            
+            warriorsHtml += `
+                <div class="warrior-card card-${res}">
+                    <div class="rank-badge">RANK: #${rank}</div>
+                    <div style="margin-bottom: 5px;">
+                        <span style="color:var(--gold); font-weight:bold">${w.name}</span>
+                        <br><small>${w.record}</small>
+                    </div>
+                    ${w.result !== "NO FIGHT" ? `
+                    <div class="fight-entry">
+                        <span class="res-${res}">${w.result}</span>
+                        <div class="opp-block">
+                            <div class="opp-name">${w.opponent} (${w.oppID})</div>
+                            <div class="opp-record">Record: ${w.oppRecord}</div>
+                            <div class="opp-team">Team: ${w.oppTeam}</div>
+                            <div class="opp-mgr">MGR: ${w.oppMgr}</div>
+                        </div>
+                    </div>` : '<div style="color:#888; text-align:center; padding:10px;">No fight this turn</div>'}
+                </div>`;
+        });
+        
+        container.innerHTML += `
+            <div class="team-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid var(--bronze); padding-bottom:5px;">
+                    <h2 class="team-header">${team.teamName}</h2>
+                    <div style="color:var(--bronze); font-family:'Cinzel Decorative',serif; font-size:1.1rem;">RECORD: ${team.teamRecord}</div>
+                </div>
+                ${warriorsHtml}
+            </div>`;
+    });
+}
+</script>
+</body>
+</html>
